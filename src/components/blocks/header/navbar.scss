@@ -1,0 +1,59 @@
+.navbar {
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #004b6f;
+
+  .logo{
+    display: flex;
+    gap: 15px;
+    
+    .icon{
+      width: 20px;
+      height: 20px;
+    }
+
+    span{
+      color: #f99042;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+  }
+
+  nav.menu-bar ul {
+    display: flex;
+    flex-direction: row;
+    gap: 13px;
+    margin-right: 10px;
+
+    li{
+      position: relative;
+      border-right: 1px solid #176B87;
+      border-spacing: 10px;
+      padding-right: 10px;
+    }
+
+
+    a {
+      text-decoration: none;
+      color: #64CCC5;
+      line-height: 14px;
+      &:hover{
+        color: #176B87;
+      }
+    }
+
+    .profile{ 
+      display: flex; 
+      align-items: center;
+
+      svg {
+        margin-top: -3px;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,52 @@
+form{
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #004b6f;
+  border-radius: 10px;
+  padding: 30px;
+  background-color: #002037;
+  width: 100%;
+
+  label, .label{
+    font-size: 14px;
+    display: block;
+    padding-bottom: 5px;
+    text-align: left;
+  }
+
+  .field-row{
+    position: relative;
+    display: block;    
+    padding: 10px 0 0;
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="checkbox"],
+    textarea, select {
+      line-height: 30px;
+      border: 1px solid #053349;
+      background-color: #001C30;
+      color: #DAFFFB;
+      padding: 5px 10px;
+      width: 100%;
+    }
+  }
+
+  .btn{
+    background-color: #d41d6d;
+    padding: 5px 10px;
+    color: #DAFFFB;
+  }
+}
+
+.form-error {
+  color: #ffb9d8;
+  border: 1px solid #d41d6d;
+  border-radius: 5px;
+  padding: 10px 0 10px 30px;
+  margin: 20px 0 0;
+  background: rgba(212, 29, 109, 0.0901960784);
+  list-style: disc;    
+}

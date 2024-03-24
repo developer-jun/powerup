@@ -1,0 +1,23 @@
+.footer{
+  text-align: center;
+  background-color: #176B87;
+  padding: 20px;  
+  border-top: 1px solid #000e14;
+  font-size: 14px;
+  position: relative;
+
+  .scroll-up{
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    right: 20px;
+    top: auto;
+    bottom: auto;
+    border: 1px solid #000e14;
+    
+    
+    img{ 
+      color: #fff;
+    }
+  }
+}

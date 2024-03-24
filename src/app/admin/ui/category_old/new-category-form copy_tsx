@@ -1,0 +1,300 @@
+"use client"
+
+import "@/components/layout/form.scss"
+import { useEffect, useRef, useReducer } from "react"
+import { initialState, reducer } from "@/reducers/categoryReducer"
+import { Category } from "@/types/category"
+import * as ACTIONS from "@/constants/category"
+import { isObjectEmpty, isObjectNullOrEmpty } from "@/utils/utils"
+import { startFormProcess, validationProcessError, updateCategory, getEmptyCategoryObject, getSlugOfCategory, convertSlugToID } from "@/actions/categoryActions"
+import { validateCategory } from "@/utils/categoryUtils";
+
+// adding async here will cause the browser to freeze
+const NewCategoryForm = ({propState, resetProps, categoryList}: {propState: any, resetProps: any, categoryList: Category[]}) => {
+ 
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { id, name, slug, description, parent } = state.category;
+  const { isProcessing, message, messageType, slugHasChanged } = state.form;
+  const { categories, componentStatus } = state;
+  const parentRef = useRef<HTMLSelectElement | null>(null);
+  
+  // we need this to only set the selected category for edit once on the first render, other rerender thru state changes must be ignored.
+  // const [ componentStatus, setComponentStatus ] = useState('onloaded'); // keep track of component render
+  
+  // const formError: Array<string> = [];
+
+  useEffect(() => {
+    console.log('The State: ', state);
+
+    // controlled state handling, the flag componentStatus will make sure the state is only set with default values once.
+    //if(componentStatus === 'onloaded') {
+      if(!isObjectNullOrEmpty(propState)) {
+        dispatch({
+          type: ACTIONS.UPDATE_STATE, 
+          payload: { 
+            category: {
+              ...propState, 
+              parent: getSlugOfCategory(propState.parent, categories),              
+            },
+            componentStatus: 'loaded',
+            form: { 
+              slugHasChanged: true,
+              editMode: true,
+            }
+          }
+        });
+      }
+
+      dispatch({
+        type: ACTIONS.UPDATE_CATEGORIES, 
+        fieldName: 'categories',
+        payload: categoryList
+      });
+    //}    
+  },[propState, componentStatus]);
+
+  // 2. Define a submit handler.
+  //const onSubmit = async(values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    
+    startFormProcess({dispatch});
+
+    /*dispatch({
+      type: ACTIONS.UPDATE_STATE,
+      payload: {
+        category: {
+          ...state.category,
+          parent: (!parentRef.current?.value) ? 0 : parentRef.current?.value,
+        },
+        form: {
+          ...state.form,
+          isProcessing: true,
+        }
+        
+      }
+    });*/
+  
+    // DO MANUAL VALIDATION.
+    const formError = validateCategory( {name, slug});
+    
+    if(formError.length) {
+      validationProcessError({dispatch, data: formError});
+      /*dispatch({
+        type: ACTIONS.UPDATE_FORM_STATUSES, 
+        payload: {
+          form: {
+            isProcessing: false,
+            message: formError.join('<br />'),
+            messageType: 'error',
+          },
+        }
+      });*/
+      return;
+    }
+    const updateResult = await updateCategory({
+      dispatch, 
+      categoryData: {
+        id: id,
+        name: name,
+        slug: slug,
+        description: description,
+        parent: (parent === 0) ? 0 :  convertSlugToID(parent, categories) 
+      },
+      resetProps
+    });
+    /*
+    if(updateResult.status === 'OK') {
+      // update the form to display the message
+      dispatch({
+        type: ACTIONS.UPDATE_FORM_STATUSES,
+        payload: { form: {
+          ...state.form,
+          ...{
+            message: updateResult.message,
+            messageType: 'success',
+            isProcessing: false,
+          }
+        }}
+      });
+
+      // then create a settimeout that wait for 3 seconds to removed the success message and clear out the form values.
+      setTimeout(() => {    
+        dispatch({
+          type: ACTIONS.UPDATE_STATE,
+          payload: {
+            category: getEmptyCategoryObject(),
+            
+            form: {
+              ...state.form,
+              ...{
+                message: '',
+                messageType: '',
+                slugHasChanged: false,
+                isProcessing: false,
+              }
+            },
+          }
+        });
+        
+        // calls the parent component to reset the props, this includes the category list as well
+        resetProps();       
+      }, 3000);
+    } else {
+      dispatch({
+        type: ACTIONS.UPDATE_FORM_STATUSES,
+        payload: { form: {
+          ...state.form,
+          ...{
+            message: updateResult.message,
+            messageType: 'error',
+          }
+        }}
+      });
+    } 
+    */        
+  }
+
+  const handleSlugBlur = (e) => {
+    if(!slugHasChanged || slug.trim() === '') {
+      dispatch({
+        type: ACTIONS.UPDATE_STATE, 
+        payload: { 
+          category: {
+            ...state.category,
+            slug: name.replace(/\s+/g, '-').toLowerCase()            
+          },
+          form: { 
+            ...state.form,
+            slugHasChanged: false,
+          }
+        }
+      });
+    } else {
+
+    }
+  }  
+  const handleResetForm = (e) => {
+    e.preventDefault();
+    
+    // component and form hard reset
+    dispatch({
+      type: ACTIONS.UPDATE_STATE, 
+      payload: initialState
+    });
+
+    // calls the parent component to do a data refresh
+    resetProps();
+  };
+
+  const handleOnChange = (value: string | number, fieldName: string) => {
+    if(fieldName === 'slug') {
+      // slug is updating both category and form children objects of state
+      dispatch({
+        type: ACTIONS.UPDATE_STATE, 
+        payload: { 
+          category: {
+            ...state.category,
+            slug: (typeof value === 'string' ? value.replace(/\s+/g, '-').toLowerCase(): value)
+          },
+          form: { 
+            ...state.form,
+            slugHasChanged: true,
+          }
+        }
+      });
+    } else {
+      dispatch({
+        type: ACTIONS.UPDATE_CATEGORY_FIELD, 
+        fieldName: fieldName, 
+        payload: value
+      });
+    }    
+  } 
+  
+  return (
+    <div id="category-form">
+      <div className="card-body items-center text-center">
+        <h2 className="card-title">{ id ? 'Update' : 'New' } Category</h2>
+        {message?
+          <div className="containerof w-full">
+            <div className={`custom-alert alert alert-${messageType}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{message}</span>
+            </div>
+          </div>:<></>
+        }
+          <form>
+            <input type="hidden" value={id} />
+            <div className="field-row">
+              <label className="label">
+                <span className="label-text">Parent Category {parent}</span>
+              </label>            
+              <select ref={parentRef} value={parent} onChange={e=>handleOnChange(e.target.value, 'parent')}>
+                <option value="0">None</option>
+                {categories.map((_category: Category) => <option key={_category.id} value={_category.slug}>{_category.name}</option>)}
+              </select>
+
+            </div>
+            <div className="field-row">
+              <label className="label">
+                <span className="label-text">Category Name</span>
+              </label>
+              <input 
+                type="text" 
+                placeholder="category name"
+                onChange={e=>handleOnChange(e.target.value, 'name')}
+                onBlur={handleSlugBlur}
+                value={name}
+                required />            
+            </div>
+            <div className="field-row">
+              <label className="label">
+                <span className="label-text">Category URL Slug</span>
+              </label>
+              <input 
+                type="text" 
+                placeholder="slug"
+                onChange={e=>handleOnChange(e.target.value, 'slug')} 
+                onBlur={handleSlugBlur}
+                value={slug}
+                required />             
+            </div>
+            <div className="field-row">
+              <label className="label">
+                <span className="label-text">Description</span>
+              </label>
+              <textarea 
+                placeholder="More details ..."
+                name="categoryDescription"
+                onChange={e=>handleOnChange(e.target.value, 'description')}
+                value={description} />
+              <label className="label">
+                <span className="label-text-alt">Write some specifics about the limit or scope of the topic</span>
+              </label>
+            </div>
+            <div className="field-row text-left">
+              <button
+                className={`${!id?'hidden':'custom-btn'}`} 
+                type="reset" 
+                title="Clears the Form to allow new category entry"
+                onClick={handleResetForm}>Reset</button>
+              <button 
+                type="submit"
+                className="custom-btn"
+                onClick={handleSubmit}
+                disabled={isProcessing}>{
+                  isProcessing 
+                  ? '....' 
+                  : id
+                    ? 'Update':
+                    'Create'
+                }</button>
+            </div>
+          </form>          
+      </div>
+    </div>             
+  )
+}
+
+export default NewCategoryForm;

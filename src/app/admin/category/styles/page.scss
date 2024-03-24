@@ -1,0 +1,18 @@
+.category-container{
+  width: 100%;
+
+}
+
+.form-list-container{
+  display: flex;
+
+  .category-form {
+    flex: 1;
+    /*background-color: #f8f9fa;*/
+  }
+
+  .category-list {
+    flex: 3;
+    /*background-color: #e9ecef;*/
+  }
+}

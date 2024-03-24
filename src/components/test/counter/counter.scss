@@ -1,0 +1,24 @@
+.counter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  flex-grow: 1;
+  align-items: center;
+
+  .badge{
+    font-size: 25px;
+  }
+
+  .btn{ 
+    background-color: #d41d6d;
+    padding: 10px 15px;
+    border: 1px solid #fff;
+  }
+
+  .counter-buttons{
+    display: flex;
+    flex-direction: row;
+    gap: 10px
+  }
+}

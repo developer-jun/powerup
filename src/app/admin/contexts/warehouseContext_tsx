@@ -1,0 +1,122 @@
+'use client';
+import React, {
+  useRef,
+  createContext,
+  useContext,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
+
+// generic <DataType>
+/**
+ * 
+ * @param initState 
+ * @returns 
+ * {
+ *   username: string,
+ *   password: string,
+ * }
+ */
+// this whole file is everything related to the context, wrapped in this 
+export default function createWarehouseContext<DataType>(initState: DataType) {
+  
+  function useDataWarehouse() {
+    // deliberately using useRef to no invoke re-render every time these two objects updates
+    // so you might wonder how do we force rerender if want something to display?
+    // we are relying on the set method's body below, where 
+    const dataObject = useRef(initState);
+    const dataOwners = useRef(new Set<() => void>());
+
+    let data = useRef(initState);
+    let listeners = useRef(Array<() => void>());
+    // note that Set only holds data, unique data that is. Any types of data is accepted hence we are able to store function definition itself
+    //let listeners =  (() => void)[] = [];
+
+    const getSnapshot = useCallback((key: keyof DataType) => {
+      return data.current[key]; 
+    }, []);
+
+    const set = useCallback((newPartialData: Partial<DataType>) => {
+      console.log(newPartialData);
+      data.current = {...data.current, ...newPartialData};
+      broadcastChange();
+    }, []);
+
+    const subscribe = useCallback((callback: () => void) => {
+      listeners.current = [...listeners.current, callback];
+      
+      return () => {
+        listeners.current = listeners.current.filter(cb => cb !== callback); // this is just to avoid duplicate callback
+      };
+    }, []);    
+
+
+    const broadcastChange = () => {
+      // listeners.current.forEach((callback) => callback()); // same as below, more elegant though
+      for (let listener of listeners.current) {
+        listener(); 
+      }
+    }   
+
+    // we're exposing three functions for our custom hook to access our core storage object: 
+    // set and get - data setter/getter, while the subscribe is used to set subscription to the data.
+    // each data set will have an accompanying subscription automatically called.
+    return {
+      set,
+      subscribe,
+      getSnapshot,
+    };
+  }
+
+  const StorageContext = createContext<ReturnType<typeof useDataWarehouse> | null>(null);
+
+  function Provider({ children }: { children: React.ReactNode }) {
+    return (
+      <StorageContext.Provider value={useDataWarehouse()}>
+        {children}
+      </StorageContext.Provider>
+    );
+  }
+
+  // const [fieldValue] = useStore((store) => store[value]);
+
+  function useData(field: keyof DataType) {
+    // So why are we sending a function as the argument instead of just values or objects?
+    // An example of a real selector function is: (field) => field[value]
+    
+    const data = useContext(StorageContext);
+    if (!data) {
+      throw new Error("Storage not found");
+    }   
+
+    const state = useSyncExternalStore(
+      data.subscribe,
+      () => data.getSnapshot(field), // has to be an active callable function as it is now, doing just data.getSnapshot(field) is invalid
+    );    
+    
+    const setField = useCallback((value: any): void => {
+      console.log('setField called: , value: ', value);
+      data.set({[field]: value} as Partial<DataType>);
+    }, []);
+
+    return [state, setField];
+  }
+
+  return {
+    Provider,
+    useData,
+  };
+  /*
+  : [SelectorOutput, (value: Partial<DataType>) => void]
+  */
+}
+/**
+ * // have access to both value and we can also set a value
+ * const [fieldValue, setStore] = useStore((store) => store[value]);
+ * - to use set
+ * setStore({ [value]: e.target.value })
+ * 
+ * // get just the value
+ * const [fieldValue] = useData((store) => store[value]);
+ * 
+ **/

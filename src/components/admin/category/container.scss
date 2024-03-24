@@ -1,0 +1,14 @@
+.category-container{
+  padding: 25px;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  width: 100%;
+
+  .category-form-list-container{
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+  }
+}

@@ -1,0 +1,11 @@
+import React from 'react'
+import { OptionItem } from '@/types/option';
+
+export default function OptionItems({optionItem}: {optionItem: OptionItem[]}) {
+
+  return (
+    <ul>
+      {optionItem.map((option, index) => (<li key={index}>{option.item_name}</li>))}
+    </ul>
+  )
+}

@@ -1,0 +1,141 @@
+"use client"
+ 
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useForm } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form"
+import { useState } from "react"
+import { useRouter } from "next/navigation";
+import ValidationError from "@/components/validation-error"
+import callServerRedirect from "@/lib/server-redirect"
+import { cookies } from "next/headers"
+import "./login-form.scss";
+
+
+const formSchema = z.object({  
+  email: z.string().email({
+    message: "Email is invalid",
+  }),
+  password: z.string().min(1, {
+    message: "Please provide a password.",
+  })  
+});
+export default function LoginForm({ userId }) {  
+  const [ APIAction, setAPIAction ] = useState('');
+  const { toast } = useToast()
+  const router = useRouter()
+
+  if(parseInt(userId)) {
+    router.push('http://localhost:3000/user?userID=', userId);
+  }
+
+  // 1. Define your form.
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+  const { register, control, handleSubmit, reset, setError, formState: {errors} } = form;
+  console.log('errors:');
+  console.log(errors);
+
+  // 2. Define a submit handler.
+  async function onSubmit(values: z.infer<typeof formSchema>) {    
+    setAPIAction('Processing ...');    
+    try { 
+      const options = {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };  
+      // await because we are going to request to the server
+      const promise = await fetch('/api/user/login', options);
+      // why await still?
+      // because just like the above we are also waiting for the server to return and set value to promise object
+      const data = await promise.json();
+
+      console.log(data);
+      if(data.status === 'OK') {
+        console.log(data.message);
+        setAPIAction('');
+        toast({
+          title: "Login Successful",
+          description: data.message,
+        });
+        //form.reset({
+        reset({
+          email: "",
+          password: "",
+        });
+
+        // router.push('http://localhost:3000/user?user_logged=true');
+        //await callServerRedirect('http://localhost:3000/user?'+ data.userId);
+
+        // we need to reset the state of the whole app so that the layout will reload and read the cookies to display the appropriate template
+        // route.push or redirect will simply go as far as display the page but not the parent layout.tsx file
+        window.location.replace('http://localhost:3000/user?'+ data.userId);
+        // router.refresh();
+      } else {
+        // form.setError('email', 
+        setError('email', 
+          {
+            message: data.message,
+          }
+        );        
+        setAPIAction('');
+      }
+      
+
+
+    } catch(error) {
+      console.log("API ERROR")
+      console.log(error)
+    }
+
+  }
+
+  
+  return (
+    <article className="login-form">
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-full space-y-4">
+          <h2>User Login</h2>
+          <ValidationError errors={errors} />
+          <FormField
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="field-row">
+                <FormLabel>Email/Username</FormLabel>
+                <Input type="email" placeholder="email@email.com" {...field} />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="field-row">
+                <FormLabel>Password</FormLabel>
+                <Input type="password" placeholder="" {...field} />
+              </FormItem>
+            )}
+          />
+          <button type="submit" className="btn">Login {APIAction}</button>
+        </form>
+      </Form>
+    </article>
+  );
+}

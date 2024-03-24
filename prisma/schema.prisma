@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  id              Int               @id @default(autoincrement())
+  name            String?           @unique(map: "Category_name_key")
+  slug            String            @unique(map: "Category_slug_key")
+  description     String
+  parent          Int?               @default(1)
+  count           Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  productcategory productcategory[]
+
+  // new additions
+  parentCategory  category?         @relation("CategoryToCategory", fields: [parent], references: [id])
+  children        category[]        @relation("CategoryToCategory")
+}
+
+//model Category {
+//  id              Int               @id @default(autoincrement())
+//  name            String?           @unique(map: "Category_name_key")
+//  slug            String            @unique(map: "Category_slug_key")
+//  description     String
+//  parent          Int               @default(0)
+//  count           Int               @default(0)
+//  createdAt       DateTime          @default(now())
+//  updatedAt       DateTime          @updatedAt
+//  productcategory productcategory[]
+  
+//  parentId        Int?
+//  parentCategory  Category?         @relation("CategoryToCategory", fields: [parentId], references: [id])
+//  children        Category[]        @relation("CategoryToCategory")
+//}
+
+enum StockStatuses {
+  INSTOCK
+  OUTOFSTOCK
+  ONBACKORDER
+}
+
+model product {
+  id              Int               @id @default(autoincrement())
+  slug            String
+  sku             String
+  name            String
+  summary         String       @db.VarChar(500)
+  description     String       @db.VarChar(1000)
+  price           Float
+  thumbUrl        String
+  imageUrl        String
+  inStock         StockStatuses    @default(INSTOCK)
+  published       Boolean    @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // what the lines means:
+  // it's purely prisma specific
+  // the fieldname on the left doesn't exist on this table, but rather only a reference key.
+  // on the right side, the name is actually the name of the table or model name.
+  // it simply means, this product will be referrenced by the productcategory table
+  // and one product item will be referrenced by many item of productcategory table.
+  // go to productcategory table to see how the referrenced gets done
+  productcategory productcategory[]
+  productimages   productimages[]
+  producttag      producttag[]
+}
+
+model productcategory {
+  category_id         Int
+  product_category_id Int      @id @default(autoincrement())
+  product_id          Int
+  category            category @relation(fields: [category_id], references: [id], map: "ProductCategory_category_id_fkey")
+  
+  // mostly prisma specific.
+  // the field name product which is located on the left side is prisma reference name
+  // the second column product is the return type, in our case a product
+  // the third column  @relation( ... ) is the definition of the relationship or reference
+  // local field product_id is mapped to the id field of the product table.
+  // ProductCategory_product_id_fkey is just the constraint unique name
+  product             product  @relation(fields: [product_id], references: [id], map: "ProductCategory_product_id_fkey")
+
+  @@index([category_id], map: "ProductCategory_category_id_fkey")
+  // this line is what is used to create the table constraints in the database.
+  @@index([product_id], map: "ProductCategory_product_id_fkey")
+}
+
+model productimages {
+  product_Images_id Int     @id @default(autoincrement())
+  product_id        Int
+  images_id         Int
+  product           product @relation(fields: [product_id], references: [id], map: "ProductImages_product_id_fkey")
+
+  @@index([product_id], map: "ProductImages_product_id_fkey")
+}
+
+model producttag {
+  product_tag_id Int     @id @default(autoincrement())
+  product_id     Int
+  tag_id         Int
+  product        product @relation(fields: [product_id], references: [id], map: "ProductTag_product_id_fkey")
+  tag            tag     @relation(fields: [tag_id], references: [tag_id], map: "ProductTag_tag_id_fkey")
+
+  @@index([product_id], map: "ProductTag_product_id_fkey")
+  @@index([tag_id], map: "ProductTag_tag_id_fkey")
+}
+
+model tag {
+  tag_id      Int          @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  producttag  producttag[]
+}
+
+model option {
+  option_id Int @id @default(autoincrement())
+  option_name String
+  option_description String
+
+  optionitem optionitem[]
+  productoptions productoptions[]
+}
+
+model optionitem {
+  item_id Int @id @default(autoincrement())
+  item_name String
+  option_id Int
+
+  productoptions productoptions[]
+
+  option   option @relation(fields: [option_id], references: [option_id], map: "OptionItem_option_id_fkey")
+
+  @@index([option_id], map: "OptionItem_option_id_fkey")
+}
+
+model productoptions {
+  productoption_id Int @id @default(autoincrement())
+  option_id Int
+  optionitem_id Int
+  additional_info String
+  addon_price Float  
+  active Boolean
+
+  option option  @relation(fields: [option_id], references: [option_id], map: "ProductOption_option_id_fkey")
+  optionitem optionitem  @relation(fields: [optionitem_id], references: [item_id], map: "ProductOption_item_id_fkey")
+
+  @@index([option_id], map: "ProductOption_option_id_fkey")
+  @@index([optionitem_id], map: "ProductOption_item_id_fkey")
+}
+
+
+model user {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique(map: "User_email_key")
+  name      String?
+  type      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

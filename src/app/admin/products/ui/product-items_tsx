@@ -1,0 +1,43 @@
+"use client";
+
+import { ACTIONS } from "../../reducers/productListReducer";
+import { ProductItem } from '@/components/admin/product/product-item';
+import { ProductWithSelection } from '@/types/product';
+import useUrlParams from '../../hooks/useUrlParams';
+import "./product-list.scss";
+import { useCallback } from "react";
+
+type ProductListProps = {
+  items: ProductWithSelection[],
+  dispatch: React.Dispatch<any>,
+  handleOnDelete: (id: number) => void,
+};
+export default function ProductItems({items, dispatch, handleOnDelete}: ProductListProps ) {
+  const urlParams = useUrlParams('/admin/products/form');
+
+  // declared here instead of inside product-item component to avoid re-creating the function for each item.
+  const handleOnCheck = useCallback((id: number) => {
+    dispatch({
+      type: ACTIONS.UPDATE_PRODUCT_SELECTION,
+      payload: id
+    });   
+  }, []);
+
+  // action handler for multiple child components
+  const handleOnEdit = useCallback((id: number) => {
+    urlParams.setUrlParam('id', `${id}`);
+  }, []);
+ 
+  return (
+    <>      
+      {items && items.map((product: ProductWithSelection) => (
+        <ProductItem 
+          key={product.id} 
+          product={product} 
+          handleOnCheck={handleOnCheck} 
+          handleOnEdit={handleOnEdit} 
+          handleOnDelete={handleOnDelete} />
+      ))} 
+    </>
+  )
+}

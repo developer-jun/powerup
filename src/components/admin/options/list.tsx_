@@ -1,0 +1,100 @@
+"use client"
+
+import React, { useReducer, useCallback } from 'react'
+
+export interface CustomProduct {
+  id?         : number;
+  sku         : string;
+  name        : string;
+  summary     : string;
+  isSelected : boolean;
+}
+type ProductItemProps = {
+  product: CustomProduct,
+  handleOnCheck(id: number): void,
+}
+
+const initialState = {
+  products: [
+    { id: 1, sku: 'sku1', name: 'Product 1', summary: 'This is product 1', isSelected: false },
+    { id: 2, sku: 'sku2', name: 'Product 2', summary: 'This is product 2', isSelected: false },
+    { id: 3, sku: 'sku3', name: 'Product 3', summary: 'This is product 3', isSelected: false },
+  ],
+  form: {
+    message: '',
+    type: ''
+  }
+};
+function productsReducer(state, action) {
+  switch (action.type) {
+    case 'toggle_select':
+      return {
+        ...state,
+        products: state.products.map(product => {
+          if (product.id === action.id) {
+            return {...product, isSelected: !product.isSelected };
+          } else {
+            return product;
+          }
+      })
+    };
+    default:
+      throw new Error();
+  }
+}
+
+const ProductItem = React.memo(function ProductItem({ product, handleOnCheck }: ProductItemProps) {
+  console.log('ProductItem component rendered: ',product.id);
+  return (
+    <div>
+      <h2>{product.name}</h2>
+      <p>
+      <input type="checkbox" onChange={(e) => { handleOnCheck(product.id)}} checked={product.isSelected} className="checkbox" />
+        {product.summary}</p>
+    </div>
+  );
+});
+
+function OptionLists() {
+  const [productState, dispatch] = useReducer(productsReducer, initialState);
+
+  const handleOnCheck = useCallback((id: number) => {
+    console.log('selected:', id);
+    dispatch({ type: 'toggle_select', id });
+  }, []);
+
+  
+ 
+  // const [productState, setProductState] = useState(products);
+  /*
+  const handleOnCheck = useCallback((id: number) => {
+    console.log('selected:',id);
+    
+    setProductState(prevState => {
+      const selectedIndex = prevState.findIndex(product => product.id === id);
+      
+      if(selectedIndex !== -1) {
+        const updatedProducts = [...prevState];
+        updatedProducts[selectedIndex] = {
+          ...updatedProducts[selectedIndex],
+          isSelected: !updatedProducts[selectedIndex].isSelected,
+        }
+
+        return updatedProducts;
+      }
+
+      return prevState;
+    });
+
+  }, []);*/
+
+  return (
+    <div>
+      {productState.products.map(product => (
+        <ProductItem key={product.id} product={product} handleOnCheck={handleOnCheck}  />
+      ))}
+    </div>
+  );
+}
+
+export default OptionLists

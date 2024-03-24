@@ -1,0 +1,130 @@
+.two-cols-container{
+  padding: 25px;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  width: 100%;
+
+  .category-form-list-container{
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+  }
+
+
+
+  /* tr.even { background-color: #043239;}*/
+}
+
+
+.category-container{
+  width: 100%;
+
+}
+
+.form-list-container{
+  display: flex;
+
+  .custom-form {
+    flex: 1;
+    /*background-color: #f8f9fa;*/
+
+    .option-item {
+      white-space: pre;
+    }
+  }
+
+  .custom-list {
+    flex: 3;
+    /*background-color: #e9ecef;*/
+  }
+}
+
+
+form{
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #004b6f;
+  border-radius: 10px;
+  padding: 30px;
+  background-color: #002037;
+  width: 100%;
+}
+  label, .label{
+    font-size: 14px;
+    display: block;
+    padding-bottom: 5px;
+    text-align: left;
+  }
+
+  .field-row, .field-row-small {
+    position: relative;
+    display: block;    
+    padding: 10px 0 0;
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="checkbox"],
+    textarea, select {
+      line-height: 30px;
+      border: 1px solid #053349;
+      background-color: #001C30;
+      color: #DAFFFB;
+      padding: 5px 10px;
+      width: 100%;
+    }
+  }
+
+  .form-fields-single{
+    .field-row-small{
+      position: relative;
+      display: block;    
+      padding: 3px 0 0;
+
+      input[type="text"] {
+        line-height: 22px;
+        padding: 1px 3px;
+      }
+    }
+  }  
+
+  .btn{
+    background-color: #d41d6d;
+    padding: 5px 10px;
+    color: #DAFFFB;
+  }
+
+
+.form-error {
+  color: #ffb9d8;
+  border: 1px solid #d41d6d;
+  border-radius: 5px;
+  padding: 10px 0 10px 30px;
+  margin: 20px 0 0;
+  background: rgba(212, 29, 109, 0.0901960784);
+  list-style: disc;    
+}
+
+.select-dropdown {
+  /* Styles for the main select container */
+}
+
+.select-dropdown optgroup {
+  padding-left: 20px; 
+}
+
+.select-dropdown option {
+  padding-left: 40px; 
+}
+
+.select-dropdown optgroup::before {
+  content: "\25B6"; /* triangle icon */
+  margin-right: 10px;
+}
+
+.select-dropdown option {
+  border-left: 2px solid #ddd;
+}
