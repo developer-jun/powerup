@@ -1,3 +1,9 @@
+A simple shopping cart backend, built from scratch based on the previous work that I did, but using only Next.js and React.
+Despite the project built on top of Next.js, however, this is mainly to showcase React. I use Next.js to lessen the complexity of React by having everything in one page. With Next.js, I'm able to break codes into chunks or pages which is convenient to Junior developer such as myself. But most of all, I planned to deploy the project to vercel once everything is ironed out.
+
+This is currently version 1, and it's everything that I've learned about React so far. More commits will follow soon as I try and do some housekeeping and further optimized the codes as I go.
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
